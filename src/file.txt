@@ -1,0 +1,16 @@
+if (   test > test
+fn               						
+>
+<
+=
+>=
+757575
+
+=
+==
+
+
+	if test > test	
+			
+				
+					main() { println!(Hello, world!); }
