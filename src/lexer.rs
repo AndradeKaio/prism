@@ -58,6 +58,90 @@ impl<'a> Lexer<'a> {
             line: self.line,
         }
     }
+    // reads a identifier
+    pub fn read_identifier(&mut self) -> Option<Token> {
+
+        let start = self.pos - 1;
+
+        while self.current_char()?.is_alphabetic() || 
+                self.current_char()?.is_numeric() || 
+                self.current_char().unwrap() == '_' {
+            self.advance();
+        }
+        
+        let lexem = self.get_lexem(start.. self.pos - 1);
+
+        let token_type = match lexem {
+            "if" => TokenType::Keyword(Keyword::If),
+            "else" => TokenType::Keyword(Keyword::Else),
+            "while" => TokenType::Keyword(Keyword::While),
+            "fn" => TokenType::Keyword(Keyword::Fn),
+            _ => TokenType::Identifier,
+        };
+
+        Some(self.token(token_type, start))
+    }
+
+    pub fn read_number_literal(&mut self) -> Option<Token> {
+        let start = self.pos - 1;
+
+        while self.current_char()?.is_numeric() {
+            self.advance();
+        }
+        Some(self.token(TokenType::Number, start))
+    }
+
+    pub fn read_symbol(&mut self, c: char) -> Option<Token> {
+
+        let token_type = match c {
+
+            '(' => TokenType::Symbol(Symbol::OpenParen),
+            ')' => TokenType::Symbol(Symbol::CloseParen),
+            '{' => TokenType::Symbol(Symbol::OpenBrace),
+            '}' => TokenType::Symbol(Symbol::CloseBrace),
+            '|' => TokenType::Symbol(Symbol::Or),
+            '&' => TokenType::Symbol(Symbol::And),
+            ',' => TokenType::Symbol(Symbol::Comma),
+            '.' => TokenType::Symbol(Symbol::Dot),
+            ';' => TokenType::Symbol(Symbol::Semicolon),
+            ':' => TokenType::Symbol(Symbol::Colon),
+            '+' => TokenType::Symbol(Symbol::Plus),
+            '-' => TokenType::Symbol(Symbol::Minus),
+            '*' => TokenType::Symbol(Symbol::Star),
+            '/' => TokenType::Symbol(Symbol::Bar),
+            '>' => {
+                if self.peek() == Some('=') {
+                    TokenType::Symbol(Symbol::Ge)
+                } else {
+                    TokenType::Symbol(Symbol::Gr)
+                }
+            },
+            '<' => {
+                if self.peek() == Some('=') {
+                    TokenType::Symbol(Symbol::Le)
+                } else {
+                    TokenType::Symbol(Symbol::Ls)
+                }
+            },
+            '=' => {
+                if self.peek() == Some('=') {
+                    TokenType::Symbol(Symbol::Eq)
+                } else {
+                    TokenType::Symbol(Symbol::Assign)
+                }
+            },
+            '!' => {
+                if self.peek() == Some('=') {
+                    TokenType::Symbol(Symbol::Ne)
+                } else {
+                    TokenType::Symbol(Symbol::Eq)
+                }
+            },
+            _ => return None,
+        };
+
+        Some(self.token(token_type, self.pos - 1))
+    }
 }
 
 impl<'a> Iterator for Lexer<'a> {
@@ -66,7 +150,25 @@ impl<'a> Iterator for Lexer<'a> {
     fn next(&mut self) -> Option<Token> {
     
         let mut c = self.get_char().unwrap();
+        
+        if c.is_whitespace() {
+            c = self.get_char()?;
 
+            while c.is_whitespace() {
+                c = self.get_char()?;
+            }
+        }
+
+        let token = match c {
+            'a'...'z' | 'A'...'Z' | '_' => self.read_identifier(),
+            '0'...'9' => self.read_number_literal(),
+            _ => self.read_symbol(c),
+        };
+
+        token
+    } 
+}
+/*
         if c.is_whitespace() {
             c = self.get_char()?;
 
@@ -136,16 +238,61 @@ impl<'a> Iterator for Lexer<'a> {
            return Some(self.token(TokenType::OpenParen, self.pos-1));
        } else if c == ')' {
            return Some(self.token(TokenType::CloseParen, self.pos-1));
-       }
-
-        None
-    }    
-
-
+        } else if c == '{' {
+            return Some(self.token(TokenType::OpenBrace, self.pos-1));
+        } else if c == '}' {
+            return Some(self.token(TokenType::CloseBrace, self.pos-1));
+        }
+            None
+        */
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Keyword {
+    If,
+    Else,
+    While,
+    Fn,
+    
+    Int,
+    Float,
+    Byte,
+    String,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Symbol {
+    OpenParen,
+    CloseParen,
+    OpenBrace,
+    CloseBrace,
+    Comma,
+    Semicolon,
+    Colon,
+    Dot,
+
+    Ge,
+    Gr,
+    Le,
+    Ls,
+    Eq,
+    Ne,
+    Assign,
+
+    Plus,
+    Minus,
+    Star,
+    Bar,
+
+
+    Not,
+    Or,
+    And,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenType {
     Identifier,
+    Symbol(Symbol),
+    Keyword(Keyword),
+
     If,
     Else,
     Do,
@@ -158,6 +305,15 @@ pub enum TokenType {
     Ls,
     Eq,
     Assign,
+
+    Plus,
+    Minus,
+    Star,
+    Bar,
+
+    Not,
+    Or,
+    And,
     
     OpenParen,
     CloseParen,
@@ -169,12 +325,12 @@ pub enum TokenType {
 
     Eof,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Lexem {
     pub start: usize,
     pub end: usize,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexem: Lexem,

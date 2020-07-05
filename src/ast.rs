@@ -10,6 +10,16 @@
  *                  "{" { <statement> } "}" |
  *                  <expr> ";" |
  *                  ";"
+                    <type> <var_decl> ";"
+                    <declaration_list>
+
+    <declaration_list> ::= <var_decl> |
+                           <fn_decl>
+
+
+    <var_decl> ::= <type> <id> [["="] <expr> {, id  ["="] <expr> } ] ";"
+    int um
+
  *  <paren_expr> ::= "(" <expr> ")"
  *  <expr> ::= <test> | <id> "=" <expr>
  *  <test> ::= <sum> | <sum> "<" <sum>
