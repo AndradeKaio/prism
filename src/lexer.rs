@@ -168,83 +168,7 @@ impl<'a> Iterator for Lexer<'a> {
         token
     } 
 }
-/*
-        if c.is_whitespace() {
-            c = self.get_char()?;
 
-            while c.is_whitespace() {
-                c = self.get_char()?;
-            }
-        }
-
-
-        if c.is_alphabetic() {
-            
-            let start = self.pos - 1;
-
-            while self.current_char()?.is_alphabetic() || self.current_char()?.is_numeric() {
-                self.advance();
-            }
-            
-            let lexem = self.get_lexem(start.. self.pos - 1);
-
-            let token_type = match lexem {
-                "if" => TokenType::If,
-                "else" => TokenType::Else,
-                "while" => TokenType::While,
-                "do" => TokenType::Do,
-                _ => TokenType::Identifier,
-            };
-            return Some(self.token(token_type, start));
-
-       } else if c.is_numeric() {
-
-           let start = self.pos - 1;
-
-            while self.current_char()?.is_numeric() {
-                self.advance();
-            }
-
-            return Some(self.token(TokenType::Number, start));
-
-       } else if c == '=' {
-           let start = self.pos-1;
-            let token_type = match self.peek() {
-                Some('=') => {self.advance(); TokenType::Eq},
-                _   => TokenType::Assign,
-            };
-            return Some(self.token(token_type, start));
-
-       } else if c == '>' {
-           let start = self.pos-1;
- 
-           let token_type = match self.peek() {
-                Some('=') => {self.advance(); TokenType::Ge},
-                _ => TokenType::Gr,
-           };
- 
-           return Some(self.token(token_type, start));
-       } else if c == '<' {
-           let start = self.pos-1;
- 
-           let token_type = match self.peek() {
-                Some('=') => {self.advance(); TokenType::Le},
-                _ => TokenType::Ls,
-           };
- 
-           return Some(self.token(token_type, start));
-
-       } else if c == '(' {
-           return Some(self.token(TokenType::OpenParen, self.pos-1));
-       } else if c == ')' {
-           return Some(self.token(TokenType::CloseParen, self.pos-1));
-        } else if c == '{' {
-            return Some(self.token(TokenType::OpenBrace, self.pos-1));
-        } else if c == '}' {
-            return Some(self.token(TokenType::CloseBrace, self.pos-1));
-        }
-            None
-        */
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Keyword {
     If,
@@ -293,35 +217,7 @@ pub enum TokenType {
     Symbol(Symbol),
     Keyword(Keyword),
 
-    If,
-    Else,
-    Do,
-    While,
     Number,
-    
-    Ge,
-    Gr,
-    Le,
-    Ls,
-    Eq,
-    Assign,
-
-    Plus,
-    Minus,
-    Star,
-    Bar,
-
-    Not,
-    Or,
-    And,
-    
-    OpenParen,
-    CloseParen,
-    OpenBrace,
-    CloseBrace,
-
-    SemiColon,
-    Comma,
 
     Eof,
 }

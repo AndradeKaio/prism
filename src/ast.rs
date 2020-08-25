@@ -28,7 +28,7 @@
  *  <id> ::= "a" | "b" | "c" | "d" | ... | "z"
  *  <int> ::= <an_unsigned_decimal_integer>
 */
-
+use crate::lexer::{Symbol};
 
 pub struct AST {
     pub kind: ASTKind,
@@ -37,8 +37,10 @@ pub struct AST {
 pub enum ASTKind {
 
     Int(i32),
-    BinOps(Box<AST>, Box<AST>, char),
+    Var,
+    BinOps(Box<AST>, Box<AST>, Symbol),
     While(Box<AST>, Box<AST>),
+    If(Box<AST>, Box<AST>, Box<AST>),
 
 }
 
@@ -52,7 +54,7 @@ impl AST {
             ASTKind::Int(n) => print!("{}", n),
             ASTKind::BinOps(ref lhs, ref rhs, c) => {
                 lhs.print();
-                print!(" {} ", c);
+                print!(" {:?} ", c);
                 rhs.print();
             },
             _ => (),
