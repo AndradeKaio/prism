@@ -50,15 +50,7 @@ impl <'a> Parser <'a>{
         //}
     }
 
-    pub fn paren_expr(&mut self) {
-       println!("-> paren_expr()");
-       self.match_tok(TokenType::Symbol(Symbol::OpenParen));
-       self.expr();      
-       self.match_tok(TokenType::Symbol(Symbol::CloseParen));
-
-    }
-
-    pub fn factor_(&mut self) -> Node<AST>{
+    pub fn factor(&mut self) -> Node<AST>{
         println!("-> factor()");
 
         match self.cur_tok.unwrap().token_type {
@@ -69,19 +61,19 @@ impl <'a> Parser <'a>{
             },
             TokenType::Symbol(Symbol::OpenParen) => {
                 self.match_tok(TokenType::Symbol(Symbol::OpenParen)); 
-                return self.expr_();
+                return self.expr();
                 self.match_tok(TokenType::Symbol(Symbol::CloseParen)); 
             },
             TokenType::Symbol(Symbol::Not) => {
                 self.match_tok(TokenType::Symbol(Symbol::Not)); 
-                return self.factor_();
+                return self.factor();
             },
             _ => Err(Error::error),
         }
     }
-    pub fn term_(&mut self) -> Node<AST>{
+    pub fn term(&mut self) -> Node<AST>{
         println!("-> term()");
-        let mut lhs = self.factor_()?;
+        let mut lhs = self.factor()?;
 
         loop {
             let symbol = match self.cur_tok.unwrap().token_type {
@@ -91,70 +83,21 @@ impl <'a> Parser <'a>{
 
                 _ => break,
             };
-            lhs = AST{kind:ASTKind::BinOps(Box::new(lhs), Box::new(self.factor_()?), symbol)}
+            lhs = AST{kind:ASTKind::BinOps(Box::new(lhs), Box::new(self.factor()?), symbol)}
         }
         return Ok(lhs);
     }
 
-    pub fn factor(&mut self){
-        println!("-> factor()");
-        match self.cur_tok.unwrap().token_type {
-            TokenType::Identifier => {self.match_tok(TokenType::Identifier); ()},
-            TokenType::Symbol(Symbol::OpenParen) => {
-                self.match_tok(TokenType::Symbol(Symbol::OpenParen)); self.expr()
-            },
-            TokenType::Symbol(Symbol::Not) => {
-                self.match_tok(TokenType::Symbol(Symbol::Not)); self.factor()
-            },
-            _ => (),
-        }
-    }
 
-    pub fn term(&mut self){
-        println!("-> term()");
-        self.factor();
-
-        loop {
-            match self.cur_tok.unwrap().token_type {
-                TokenType::Symbol(Symbol::Star) => {self.match_tok(TokenType::Symbol(Symbol::Star)); ()},
-                TokenType::Symbol(Symbol::Bar) => {self.match_tok(TokenType::Symbol(Symbol::Bar)); ()},
-                TokenType::Symbol(Symbol::And) => {self.match_tok(TokenType::Symbol(Symbol::And)); ()},
-
-                _ => break,
-            }
-            self.factor();
-        }
-    }
-    pub fn expr_s(&mut self) {
-        println!("-> expr_s()");
+    pub fn exprs(&mut self) -> Node<AST>{
+        println!("-> exprs()");
         match self.cur_tok.unwrap().token_type {
             TokenType::Symbol(Symbol::Plus) => {self.match_tok(TokenType::Symbol(Symbol::Plus)); ()},
             TokenType::Symbol(Symbol::Minus) => {self.match_tok(TokenType::Symbol(Symbol::Minus)); ()},
             _ => (),
         }
 
-        self.term();
-
-        loop {
-            match self.cur_tok.unwrap().token_type {
-                TokenType::Symbol(Symbol::Plus) => {self.match_tok(TokenType::Symbol(Symbol::Plus)); ()},
-                TokenType::Symbol(Symbol::Minus) => {self.match_tok(TokenType::Symbol(Symbol::Minus)); ()},
-                TokenType::Symbol(Symbol::Or) => {self.match_tok(TokenType::Symbol(Symbol::Or)); ()},
-
-                _ => break,
-            }
-            self.term();
-        }
-    }
-    pub fn expr_s_(&mut self) -> Node<AST>{
-        println!("-> expr_s()");
-        match self.cur_tok.unwrap().token_type {
-            TokenType::Symbol(Symbol::Plus) => {self.match_tok(TokenType::Symbol(Symbol::Plus)); ()},
-            TokenType::Symbol(Symbol::Minus) => {self.match_tok(TokenType::Symbol(Symbol::Minus)); ()},
-            _ => (),
-        }
-
-        let mut lhs = self.term_()?;
+        let mut lhs = self.term()?;
 
         loop {
             let symbol = match self.cur_tok.unwrap().token_type {
@@ -164,14 +107,14 @@ impl <'a> Parser <'a>{
 
                 _ => break,
             };
-            lhs = AST{kind:ASTKind::BinOps(Box::new(lhs), Box::new(self.term_()?), symbol)};
+            lhs = AST{kind:ASTKind::BinOps(Box::new(lhs), Box::new(self.term()?), symbol)};
         }
         return Ok(lhs);
     }
-    pub fn expr_(&mut self) -> Node<AST> {
+    pub fn expr(&mut self) -> Node<AST> {
         println!("-> expr()");
 
-        let mut lhs = self.expr_s_()?;
+        let mut lhs = self.exprs()?;
 
         loop {
             let symbol = match self.cur_tok.unwrap().token_type {
@@ -183,136 +126,57 @@ impl <'a> Parser <'a>{
                 
                 _ => break,
             };
-            lhs = AST{kind:ASTKind::BinOps(Box::new(lhs), Box::new(self.expr_s_()?), symbol)};
+            lhs = AST{kind:ASTKind::BinOps(Box::new(lhs), Box::new(self.exprs()?), symbol)};
         }
         return Ok(lhs);
     }
 
-    pub fn expr(&mut self) {
-        println!("-> expr()");
-
-        self.expr_s();
-
-        loop {
-            match self.cur_tok.unwrap().token_type {
-                TokenType::Symbol(Symbol::Gr) => {self.match_tok(TokenType::Symbol(Symbol::Gr)); ()},
-                TokenType::Symbol(Symbol::Ls) => {self.match_tok(TokenType::Symbol(Symbol::Ls)); ()},
-                TokenType::Symbol(Symbol::Eq) => {self.match_tok(TokenType::Symbol(Symbol::Eq)); ()},
-                TokenType::Symbol(Symbol::Ge) => {self.match_tok(TokenType::Symbol(Symbol::Ge)); ()},
-                TokenType::Symbol(Symbol::Le) => {self.match_tok(TokenType::Symbol(Symbol::Le)); ()},
-                
-                _ => break,
-            }
-            
-            self.expr_s();
-        }
-    }
 
 
-    pub fn if_stmt(&mut self) {
+    pub fn if_stmt(&mut self) -> Node<AST>{
         println!("-> if stmt()");
         self.match_tok(TokenType::Keyword(Keyword::If));
         self.match_tok(TokenType::Symbol(Symbol::OpenParen));
-        self.expr();
+        let cond = self.expr();
         self.match_tok(TokenType::Symbol(Symbol::CloseParen));
         //body
         self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-        self.stmt();
+        let body = self.stmt();
         self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
 
-        //optional list of if else
-        while self.cur_tok.unwrap().token_type == TokenType::Keyword(Keyword::If) {
-            self.match_tok(TokenType::Keyword(Keyword::If));
-            self.match_tok(TokenType::Keyword(Keyword::Else));
-            self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-            self.stmt();
-            self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
-        }
-        //optional else
+
         if self.cur_tok.unwrap().token_type == TokenType::Keyword(Keyword::Else) {
-            self.match_tok(TokenType::Keyword(Keyword::Else));
             self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-            self.stmt();
+            let else_stmt = self.stmt()?;
             self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
+            return Ok(AST{kind:ASTKind::IfElse(Box::new(cond?), Box::new(body?), Box::new(else_stmt))});
         }
+        return Ok(AST{kind:ASTKind::If(Box::new(cond?), Box::new(body?))});
     }
-    // pub fn if_stmt_(&mut self) -> Node<AST>{
-    //     println!("-> if stmt()");
-    //     self.match_tok(TokenType::Keyword(Keyword::If));
-    //     self.match_tok(TokenType::Symbol(Symbol::OpenParen));
-    //     let cond = self.expr_();
-    //     self.match_tok(TokenType::Symbol(Symbol::CloseParen));
-    //     //body
-    //     self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-    //     let body = self.stmt();
-    //     self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
 
 
-    //     if self.cur_tok.unwrap().token_type == TokenType::Keyword(Keyword::Else) {
-    //         self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-    //         let else_stmt = self.stmt_();
-    //         self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
-    //     }else {
-    //         let else_stmt = None;
-    //     }
-
-    //     return Node(AST{kind:ASTKind::If(Box::new(cond), Box::new(body), else_stmt)});
-        //optional list of if else
-        // loop {
-        //     if self.cur_tok.unwrap().token_type == TokenType::Keyword(Keyword::Else) {
-        //         self.match_tok(TokenType::Keyword(Keyword::Else));
-        //         if self.cur_tok.unwrap().token_type == TokenType::Keyword(Keyword::If) {
-        //             self.match_tok(TokenType::Keyword(Keyword::If));
-        //             self.match_tok(TokenType::Symbol(Symbol::OpenParen));
-        //             self.expr_();
-        //             self.match_tok(TokenType::Symbol(Symbol::CloseParen));
-        //             self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-        //             self.stmt();
-        //             self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
-        //         //only else's body
-        //         }else {
-        //             self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
-        //             self.stmt();
-        //             self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
-        //             break;
-        //         }
-        //     }else {
-        //         break;
-        //     }
-    
-        // }
-    // }
-
-
-
-
-
-    pub fn while_stmt(&mut self){
+    pub fn while_stmt(&mut self) -> Node<AST>{
         println!("-> while stmt()");
-
+        Ok(AST{kind:ASTKind::Var})
     }
 
-    pub fn do_while_stmt(&mut self) {
-        println!("-> do while stmt()");
 
-    }
-
-    pub fn compound_stmt(&mut self) {
+    pub fn compound_stmt(&mut self) -> Node<AST>{
         println!("-> compound_stmt()");
 
         match self.cur_tok.unwrap().token_type {
             TokenType::Keyword(Keyword::If) => self.if_stmt(),
             TokenType::Keyword(Keyword::While) => self.while_stmt(),
-            _ => (),
+            _ => Err(Error::error),
 
         }
     }
-    pub fn simple_stmt(&mut self) {
+    pub fn simple_stmt(&mut self) -> Node<AST>{
         println!("-> simple_stmt()");
-
+        Ok(AST{kind:ASTKind::Var})
     }
 
-    pub fn stmt(&mut self) {
+    pub fn stmt(&mut self) -> Node<AST>{
         println!("-> stmt()");
         //let tok = self.lexer.next().unwrap();
         
@@ -322,7 +186,6 @@ impl <'a> Parser <'a>{
             
         }
     }
-   
 
 }
 

@@ -40,7 +40,8 @@ pub enum ASTKind {
     Var,
     BinOps(Box<AST>, Box<AST>, Symbol),
     While(Box<AST>, Box<AST>),
-    If(Box<AST>, Box<AST>, Box<AST>),
+    If(Box<AST>, Box<AST>),
+    IfElse(Box<AST>, Box<AST>, Box<AST>),
 
 }
 
