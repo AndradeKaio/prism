@@ -42,7 +42,9 @@ impl<'a> Lexer<'a> {
             self.line += 1;
         }
     }
-
+    pub fn get_tok_lexem(&self, tok: Token) -> &str {
+        &self.content[tok.lexem.start..tok.lexem.end + 1]
+    }
     pub fn get_lexem(&self, range: Range<usize>) -> &str {
         &self.content[range.start..range.end + 1]
     }
@@ -81,7 +83,7 @@ impl<'a> Lexer<'a> {
             "float" => TokenType::Keyword(Keyword::Float),
             "int" => TokenType::Keyword(Keyword::Int),
             "boolean" => TokenType::Keyword(Keyword::Boolean),
-            _ => TokenType::Identifier,
+            _ => TokenType::Identifier(lexem.to_string()),
         };
 
         Some(self.token(token_type, start))
@@ -144,7 +146,7 @@ impl<'a> Lexer<'a> {
                 }
             },
             '\'' => {
-                let start = self.pos - 1;
+                let start = self.pos;
                 while self.current_char()? != '\'' {
                     self.advance();
                 }
@@ -228,7 +230,7 @@ pub enum Symbol {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
-    Identifier,
+    Identifier(String),
     Symbol(Symbol),
     Keyword(Keyword),
 

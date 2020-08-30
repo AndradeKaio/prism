@@ -42,6 +42,11 @@ impl <'a> Parser <'a>{
         token_type, token.token_type, self.lexer.get_lexem(token.lexem.start..token.lexem.end), token.line);
         true
     }
+
+    pub fn get_lexem(&self, tok: Token) -> String {
+        self.lexer.get_tok_lexem(tok).to_string()
+    }
+
     pub fn parse(&mut self) -> Node<AST>{
         self.cur_tok = Some(self.lexer.next().unwrap());
             let start = self.stmt()?; 
@@ -56,9 +61,9 @@ impl <'a> Parser <'a>{
         let tok = self.cur_tok.clone().unwrap();
         match tok.token_type {
 
-            TokenType::Identifier => {
-                self.match_tok(TokenType::Identifier);
-                return Ok(AST{kind:ASTKind::Var});
+            TokenType::Identifier(i) => {
+                self.match_tok(TokenType::Identifier(i.clone()));
+                return Ok(AST{kind:ASTKind::Var(i)});
             },
             TokenType::IntNumber(u) => {
                 self.match_tok(TokenType::IntNumber(u));
@@ -185,9 +190,30 @@ impl <'a> Parser <'a>{
 
     pub fn while_stmt(&mut self) -> Node<AST>{
         println!("-> while stmt()");
-        Ok(AST{kind:ASTKind::Var})
+        Ok(
+            AST{kind:ASTKind::Var("teste".to_string())}
+        )
     }
 
+    pub fn func_def(&mut self) -> Node<AST> {
+        self.match_tok(TokenType::Keyword(Keyword::Fn));
+
+        let func_name = self.cur_tok.clone().unwrap();
+
+        self.match_tok(TokenType::Identifier("".to_string()));//panicate if is not a id
+        self.match_tok(TokenType::Symbol(Symbol::OpenParen));
+        //paren_list
+        self.match_tok(TokenType::Symbol(Symbol::CloseParen));
+        self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
+        let body = self.stmt()?;
+        self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
+
+        Ok(
+            AST{kind:ASTKind::FuncDef(Box::new(AST{kind:ASTKind::Int(1)}), 
+            self.get_lexem(func_name), 
+            Box::new(body))}
+        )
+    }
 
     pub fn compound_stmt(&mut self) -> Node<AST>{
         println!("-> compound_stmt()");
@@ -196,13 +222,14 @@ impl <'a> Parser <'a>{
         match tok.token_type {
             TokenType::Keyword(Keyword::If) => self.if_stmt(),
             TokenType::Keyword(Keyword::While) => self.while_stmt(),
+            TokenType::Keyword(Keyword::Fn) => self.func_def(),
             _ => Err(Error::error),
 
         }
     }
     pub fn simple_stmt(&mut self) -> Node<AST>{
         println!("-> simple_stmt()");
-        Ok(AST{kind:ASTKind::Var})
+        Ok(AST{kind:ASTKind::Var("teste".to_string())})
     }
 
     pub fn stmt(&mut self) -> Node<AST>{

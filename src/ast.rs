@@ -41,11 +41,14 @@ pub enum ASTKind {
     String(String),
     Boolean(bool),
     Byte(u8),
-    Var,
+    Var(String),
+
     BinOps(Box<AST>, Box<AST>, Symbol),
+
     While(Box<AST>, Box<AST>),
     If(Box<AST>, Box<AST>),
     IfElse(Box<AST>, Box<AST>, Box<AST>),
+    FuncDef(Box<AST>, String, Box<AST>),
 
 }
 
