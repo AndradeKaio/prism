@@ -36,7 +36,11 @@ pub struct AST {
 
 pub enum ASTKind {
 
-    Int(i32),
+    Int(u32),
+    Float(f32),
+    String(String),
+    Boolean(bool),
+    Byte(u8),
     Var,
     BinOps(Box<AST>, Box<AST>, Symbol),
     While(Box<AST>, Box<AST>),
@@ -60,6 +64,11 @@ impl AST {
                 println!("{}", "}");
             },
             ASTKind::Int(n) => print!("Integer {}", n),
+            ASTKind::Float(n) => print!("Float {}", n),
+            ASTKind::Byte(n) => print!("Byte {}", n),
+            ASTKind::Boolean(n) => print!("Boolean {}", n),
+            ASTKind::String(ref n) => print!("String {}", n.to_string()),
+
             ASTKind::BinOps(ref lhs, ref rhs, c) => {
                 lhs.print_ast();
                 print!(" {:?} ", c);

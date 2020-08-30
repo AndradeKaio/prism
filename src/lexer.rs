@@ -76,6 +76,11 @@ impl<'a> Lexer<'a> {
             "else" => TokenType::Keyword(Keyword::Else),
             "while" => TokenType::Keyword(Keyword::While),
             "fn" => TokenType::Keyword(Keyword::Fn),
+            "byte" => TokenType::Keyword(Keyword::Byte),
+            "string" => TokenType::Keyword(Keyword::String),
+            "float" => TokenType::Keyword(Keyword::Float),
+            "int" => TokenType::Keyword(Keyword::Int),
+            "boolean" => TokenType::Keyword(Keyword::Boolean),
             _ => TokenType::Identifier,
         };
 
@@ -88,7 +93,8 @@ impl<'a> Lexer<'a> {
         while self.current_char()?.is_numeric() {
             self.advance();
         }
-        Some(self.token(TokenType::Number, start))
+        let lexem = self.get_lexem(start.. self.pos - 1);        
+        Some(self.token(TokenType::IntNumber(lexem.parse::<u32>().unwrap()), start))
     }
 
     pub fn read_symbol(&mut self, c: char) -> Option<Token> {
@@ -137,6 +143,14 @@ impl<'a> Lexer<'a> {
                     TokenType::Symbol(Symbol::Eq)
                 }
             },
+            '\'' => {
+                let start = self.pos - 1;
+                while self.current_char()? != '\'' {
+                    self.advance();
+                }
+                let lexem = self.get_lexem(start.. self.pos - 1);
+                TokenType::StringValue(lexem.to_string())
+            }
             _ => return None,
         };
 
@@ -164,7 +178,7 @@ impl<'a> Iterator for Lexer<'a> {
             '0'...'9' => self.read_number_literal(),
             _ => self.read_symbol(c),
         };
-
+        println!("{:?}", token);
         token
     } 
 }
@@ -179,6 +193,7 @@ pub enum Keyword {
     Int,
     Float,
     Byte,
+    Boolean,
     String,
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -211,13 +226,18 @@ pub enum Symbol {
     And,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     Identifier,
     Symbol(Symbol),
     Keyword(Keyword),
 
-    Number,
+    IntNumber(u32),
+    FloatNumber(f32),
+    ByteNumber(u8),
+
+    BoolValue(bool),
+    StringValue(String),
 
     Eof,
 }
@@ -226,7 +246,7 @@ pub struct Lexem {
     pub start: usize,
     pub end: usize,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexem: Lexem,
