@@ -42,12 +42,14 @@ impl <'a> Parser <'a>{
         token_type, token.token_type, self.lexer.get_lexem(token.lexem.start..token.lexem.end), token.line);
         true
     }
-    pub fn parse(&mut self){
+    pub fn parse(&mut self) -> Node<AST>{
         self.cur_tok = Some(self.lexer.next().unwrap());
         //while !self.cur_tok.is_none() && self.cur_tok.unwrap().token_type != TokenType::Eof {
             println!("{:?}", self.cur_tok);
-            self.stmt(); 
+            let start = self.stmt()?; 
+            start.print_ast();
         //}
+        Ok(start)
     }
 
     pub fn factor(&mut self) -> Node<AST>{

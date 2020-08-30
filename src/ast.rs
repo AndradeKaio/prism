@@ -49,14 +49,21 @@ pub enum ASTKind {
 
 impl AST {
 
-    pub fn print(&self) {
+    pub fn print_ast(&self) {
 
         match self.kind {
-            ASTKind::Int(n) => print!("{}", n),
+            ASTKind::If(ref cond, ref body) => {
+                print!("{}","if( ");
+                cond.print_ast();
+                println!("{}", ") {");
+                body.print_ast();
+                println!("{}", "}");
+            },
+            ASTKind::Int(n) => print!("Integer {}", n),
             ASTKind::BinOps(ref lhs, ref rhs, c) => {
-                lhs.print();
+                lhs.print_ast();
                 print!(" {:?} ", c);
-                rhs.print();
+                rhs.print_ast();
             },
             _ => (),
             

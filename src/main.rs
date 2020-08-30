@@ -29,5 +29,4 @@ fn main() {
     
     let mut parser = Parser::new(&mut lexer); 
     parser.parse();
-    binop.print();
 }
