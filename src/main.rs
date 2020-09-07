@@ -23,8 +23,8 @@ fn main() {
     let content = fs::read_to_string("file.txt").unwrap();
     let mut lexer = Lexer::new(&content);
 
-    let val1 = ast::AST{kind:ASTKind::Int(1)};
-    let val2 = ast::AST{kind:ASTKind::Int(2)};
+    let val1 = ast::AST{kind:ASTKind::LitInt(1)};
+    let val2 = ast::AST{kind:ASTKind::LitInt(2)};
     let binop = ast::AST{kind:ASTKind::BinOps(Box::new(val1), Box::new(val2), Symbol::Plus)};
     
     let mut parser = Parser::new(&mut lexer); 

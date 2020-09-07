@@ -42,6 +42,14 @@ impl <'a> Parser <'a>{
         token_type, token.token_type, self.lexer.get_lexem(token.lexem.start..token.lexem.end), token.line);
         true
     }
+    
+    pub fn cur_tok(&self) -> Option<Token> {
+        self.cur_tok.clone()
+    }
+
+    pub fn cur_type(&self) -> TokenType {
+        self.cur_tok.clone().unwrap().token_type
+    }
 
     pub fn get_lexem(&self, tok: Token) -> String {
         self.lexer.get_tok_lexem(tok).to_string()
@@ -58,32 +66,31 @@ impl <'a> Parser <'a>{
     pub fn factor(&mut self) -> Node<AST>{
         println!("-> factor()");
 
-        let tok = self.cur_tok.clone().unwrap();
-        match tok.token_type {
+        match self.cur_type() {
 
             TokenType::Identifier(i) => {
                 self.match_tok(TokenType::Identifier(i.clone()));
                 return Ok(AST{kind:ASTKind::Var(i)});
             },
-            TokenType::IntNumber(u) => {
-                self.match_tok(TokenType::IntNumber(u));
-                Ok(AST{kind:ASTKind::Int(u)})
+            TokenType::LitInt(u) => {
+                self.match_tok(TokenType::LitInt(u));
+                Ok(AST{kind:ASTKind::LitInt(u)})
             },
-            TokenType::FloatNumber(f) => {
-                self.match_tok(TokenType::FloatNumber(f));
-                Ok(AST{kind:ASTKind::Float(f)})
+            TokenType::LitFloat(f) => {
+                self.match_tok(TokenType::LitFloat(f));
+                Ok(AST{kind:ASTKind::LitFloat(f)})
             },
-            TokenType::ByteNumber(b) => {
-                self.match_tok(TokenType::ByteNumber(b));
-                Ok(AST{kind:ASTKind::Byte(b)})
+            TokenType::LitByte(b) => {
+                self.match_tok(TokenType::LitByte(b));
+                Ok(AST{kind:ASTKind::LitByte(b)})
             },
-            TokenType::StringValue(s) => {
-                self.match_tok(TokenType::StringValue(s.clone()));
-                Ok(AST{kind:ASTKind::String(s)})
+            TokenType::LitString(s) => {
+                self.match_tok(TokenType::LitString(s.clone()));
+                Ok(AST{kind:ASTKind::LitString(s)})
             },
-            TokenType::BoolValue(b) => {
-                self.match_tok(TokenType::BoolValue(b));
-                Ok(AST{kind:ASTKind::Boolean(b)})
+            TokenType::LitBool(b) => {
+                self.match_tok(TokenType::LitBool(b));
+                Ok(AST{kind:ASTKind::LitBoolean(b)})
             },
             TokenType::Symbol(Symbol::OpenParen) => {
                 self.match_tok(TokenType::Symbol(Symbol::OpenParen)); 
@@ -101,10 +108,8 @@ impl <'a> Parser <'a>{
         println!("-> term()");
         let mut lhs = self.factor()?;
 
-        let mut tok;
         loop {
-            tok = self.cur_tok.clone();
-            let symbol = match tok.unwrap().token_type {
+            let symbol = match self.cur_type() {
                 TokenType::Symbol(Symbol::Star) => {self.match_tok(TokenType::Symbol(Symbol::Star)); Symbol::Star},
                 TokenType::Symbol(Symbol::Bar) => {self.match_tok(TokenType::Symbol(Symbol::Bar)); Symbol::Bar},
                 TokenType::Symbol(Symbol::And) => {self.match_tok(TokenType::Symbol(Symbol::And)); Symbol::And},
@@ -119,8 +124,7 @@ impl <'a> Parser <'a>{
 
     pub fn exprs(&mut self) -> Node<AST>{
         println!("-> exprs()");
-        let tok = self.cur_tok.clone();
-        match tok.unwrap().token_type {
+        match self.cur_type() {
             TokenType::Symbol(Symbol::Plus) => {self.match_tok(TokenType::Symbol(Symbol::Plus)); ()},
             TokenType::Symbol(Symbol::Minus) => {self.match_tok(TokenType::Symbol(Symbol::Minus)); ()},
             _ => (),
@@ -128,10 +132,8 @@ impl <'a> Parser <'a>{
 
         let mut lhs = self.term()?;
 
-        let mut tok;
         loop {
-            tok = self.cur_tok.clone();
-            let symbol = match tok.unwrap().token_type {
+            let symbol = match self.cur_type() {
                 TokenType::Symbol(Symbol::Plus) => {self.match_tok(TokenType::Symbol(Symbol::Plus)); Symbol::Plus},
                 TokenType::Symbol(Symbol::Minus) => {self.match_tok(TokenType::Symbol(Symbol::Minus)); Symbol::Minus},
                 TokenType::Symbol(Symbol::Or) => {self.match_tok(TokenType::Symbol(Symbol::Or)); Symbol::Or},
@@ -147,10 +149,8 @@ impl <'a> Parser <'a>{
 
         let mut lhs = self.exprs()?;
 
-        let mut tok;
         loop {
-            tok = self.cur_tok.clone();
-            let symbol = match tok.unwrap().token_type {
+            let symbol = match self.cur_type() {
                 TokenType::Symbol(Symbol::Gr) => {self.match_tok(TokenType::Symbol(Symbol::Gr)); Symbol::Gr},
                 TokenType::Symbol(Symbol::Ls) => {self.match_tok(TokenType::Symbol(Symbol::Ls)); Symbol::Ls},
                 TokenType::Symbol(Symbol::Eq) => {self.match_tok(TokenType::Symbol(Symbol::Eq)); Symbol::Eq},
@@ -177,8 +177,7 @@ impl <'a> Parser <'a>{
         let body = self.stmt();
         self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
 
-        let tok = self.cur_tok.clone();
-        if tok.unwrap().token_type == TokenType::Keyword(Keyword::Else) {
+        if self.cur_type() == TokenType::Keyword(Keyword::Else) {
             self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
             let else_stmt = self.stmt()?;
             self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
@@ -201,6 +200,15 @@ impl <'a> Parser <'a>{
         let func_name = self.cur_tok.clone().unwrap();
 
         self.match_tok(TokenType::Identifier("".to_string()));//panicate if is not a id
+
+        //type spec
+        if self.cur_type() == TokenType::Symbol(Symbol::Colon) {
+            self.match_tok(TokenType::Symbol(Symbol::Colon));
+            //match type self.match_tok(TokenType::Symbol(Symbol::Colon));
+        }
+
+
+
         self.match_tok(TokenType::Symbol(Symbol::OpenParen));
         //paren_list
         self.match_tok(TokenType::Symbol(Symbol::CloseParen));
@@ -209,7 +217,7 @@ impl <'a> Parser <'a>{
         self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
 
         Ok(
-            AST{kind:ASTKind::FuncDef(Box::new(AST{kind:ASTKind::Int(1)}), 
+            AST{kind:ASTKind::FuncDef(Box::new(AST{kind:ASTKind::LitInt(1)}), 
             self.get_lexem(func_name), 
             Box::new(body))}
         )
@@ -218,8 +226,7 @@ impl <'a> Parser <'a>{
     pub fn compound_stmt(&mut self) -> Node<AST>{
         println!("-> compound_stmt()");
 
-        let tok = self.cur_tok.clone().unwrap();
-        match tok.token_type {
+        match self.cur_type() {
             TokenType::Keyword(Keyword::If) => self.if_stmt(),
             TokenType::Keyword(Keyword::While) => self.while_stmt(),
             TokenType::Keyword(Keyword::Fn) => self.func_def(),
@@ -234,9 +241,7 @@ impl <'a> Parser <'a>{
 
     pub fn stmt(&mut self) -> Node<AST>{
         println!("-> stmt()");
-        //let tok = self.lexer.next().unwrap();
-        let tok = self.cur_tok.clone().unwrap();
-        match tok.token_type {
+        match self.cur_type() {
             TokenType::Keyword(_) => self.compound_stmt(),
             _ =>  self.simple_stmt(),
             

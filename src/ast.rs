@@ -36,11 +36,11 @@ pub struct AST {
 
 pub enum ASTKind {
 
-    Int(u32),
-    Float(f32),
-    String(String),
-    Boolean(bool),
-    Byte(u8),
+    LitInt(u32),
+    LitFloat(f32),
+    LitString(String),
+    LitBoolean(bool),
+    LitByte(u8),
     Var(String),
 
     BinOps(Box<AST>, Box<AST>, Symbol),
@@ -66,11 +66,11 @@ impl AST {
                 body.print_ast();
                 println!("{}", "}");
             },
-            ASTKind::Int(n) => print!("Integer {}", n),
-            ASTKind::Float(n) => print!("Float {}", n),
-            ASTKind::Byte(n) => print!("Byte {}", n),
-            ASTKind::Boolean(n) => print!("Boolean {}", n),
-            ASTKind::String(ref n) => print!("String {}", n.to_string()),
+            ASTKind::LitInt(n) => print!("Integer {}", n),
+            ASTKind::LitFloat(n) => print!("Float {}", n),
+            ASTKind::LitByte(n) => print!("Byte {}", n),
+            ASTKind::LitBoolean(n) => print!("Boolean {}", n),
+            ASTKind::LitString(ref n) => print!("String {}", n.to_string()),
 
             ASTKind::BinOps(ref lhs, ref rhs, c) => {
                 lhs.print_ast();

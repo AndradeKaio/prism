@@ -96,7 +96,7 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
         let lexem = self.get_lexem(start.. self.pos - 1);        
-        Some(self.token(TokenType::IntNumber(lexem.parse::<u32>().unwrap()), start))
+        Some(self.token(TokenType::LitInt(lexem.parse::<u32>().unwrap()), start))
     }
 
     pub fn read_symbol(&mut self, c: char) -> Option<Token> {
@@ -151,7 +151,7 @@ impl<'a> Lexer<'a> {
                     self.advance();
                 }
                 let lexem = self.get_lexem(start.. self.pos - 1);
-                TokenType::StringValue(lexem.to_string())
+                TokenType::LitString(lexem.to_string())
             }
             _ => return None,
         };
@@ -234,12 +234,12 @@ pub enum TokenType {
     Symbol(Symbol),
     Keyword(Keyword),
 
-    IntNumber(u32),
-    FloatNumber(f32),
-    ByteNumber(u8),
+    LitInt(u32),
+    LitFloat(f32),
+    LitByte(u8),
 
-    BoolValue(bool),
-    StringValue(String),
+    LitBool(bool),
+    LitString(String),
 
     Eof,
 }
@@ -279,13 +279,3 @@ impl Token {
         self.line
     }  
 }
-
-
-
-
-
-
-
-
-
-
