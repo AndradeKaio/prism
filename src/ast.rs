@@ -60,11 +60,11 @@ impl AST {
 
         match self.kind {
             ASTKind::If(ref cond, ref body) => {
-                print!("{}","if( ");
+                print!("if( ");
                 cond.print_ast();
-                println!("{}", ") {");
+                println!(") {{");
                 body.print_ast();
-                println!("{}", "}");
+                println!("}}");
             },
             ASTKind::LitInt(n) => print!("Integer {}", n),
             ASTKind::LitFloat(n) => print!("Float {}", n),

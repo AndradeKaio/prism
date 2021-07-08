@@ -176,8 +176,8 @@ impl<'a> Iterator for Lexer<'a> {
         }
 
         let token = match c {
-            'a'...'z' | 'A'...'Z' | '_' => self.read_identifier(),
-            '0'...'9' => self.read_number_literal(),
+            'a'..= 'z' | 'A'..= 'Z' | '_' => self.read_identifier(),
+            '0'..= '9' => self.read_number_literal(),
             _ => self.read_symbol(c),
         };
         println!("{:?}", token);
@@ -278,4 +278,33 @@ impl Token {
     pub fn get_line(&self) -> u32 {
         self.line
     }  
+}
+
+impl fmt::Display for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Symbol::OpenParen => write!(f, "("),
+            Symbol::CloseParen => write!(f, ")"),
+            Symbol::OpenBrace => write!(f, "{}", "{"),
+            Symbol::CloseBrace => write!(f, "{}", "}"),
+            Symbol::Comma => write!(f, ","),
+            Symbol::Semicolon => write!(f, ";"),
+            Symbol::Colon => write!(f, ":"),
+            Symbol::Dot => write!(f, "."),
+            Symbol::Ge => write!(f, ">="),
+            Symbol::Gr => write!(f, ">"),
+            Symbol::Le => write!(f, "<="),
+            Symbol::Ls => write!(f, "<"),
+            Symbol::Eq => write!(f, "=="),
+            Symbol::Ne => write!(f, "!="),
+            Symbol::Assign => write!(f, "="),
+            Symbol::Plus => write!(f, "+"),
+            Symbol::Minus => write!(f, "-"),
+            Symbol::Star => write!(f, "*"),
+            Symbol::Bar => write!(f, "/"),
+            Symbol::Not => write!(f, "!"),
+            Symbol::Or => write!(f, "|"),
+            Symbol::And => write!(f, "&"),
+        }
+    }
 }

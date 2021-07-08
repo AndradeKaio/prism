@@ -1,15 +1,17 @@
-if (   2 > 1 ){}
-fn               						
->
-<
-=
->=
-757575
+int a = 10, b, c = 10;
+int a;
+while(true){
 
-=
-==
+}
 
-	if test > test	
-			
-				
-					main() { println!(Hello, world!); }
+if (1 > 2){
+	int b;
+}else if (1<2){
+	int c;
+}else{
+	int d;
+}
+
+fn p: int (int a, int b, int c){
+	ret 0;
+}

@@ -1,19 +1,18 @@
-simple_stmp | compound_stmt
+smt: simple_stmt | compound_stmt
 
-compound_stmt : "if" "(" expr ")" "{" stmt "}" ["else" "if"  "("expr")" "{" stmt "}"] ["else" "{" stmt "}"] |
+simple_stmt: var_decl
+
+compound_stmt: "if" "(" expr ")" "{" stmt "}" ["else" "if"  "("expr")" "{" stmt "}"] ["else" "{" stmt "}"] |
                 "while" "(" expr ")" "{" stmt "}" |
-                "fn" id "(" param_list ")" "{" "}" | 
-            ;
+                "fn" id "(" func_param_list ")" "{" "}"
 
 
-func_def := "fn" id [: type] "(" param_list ")" "{" ["ret" (id | (int | byte | string | float | boolean)]  "}"
+func_def : "fn" id [: return_type] "(" func_param_list ")" "{" ["ret" (id | literal]  "}"
 
-param_list := type id {',' type id }
+func_param_list : type id {',' type id }
 
-type := "int" | "byte" | "string" | "float" | "boolean" ;
+var_decl : type id ['=' ['-'] literal] {',' id ['=' ['-'] literal]} ';'
 
+type := "int" | "byte" | "string" | "float" | "bool"
 
-fn get_id  () {
-
-    ret 2;
-}
+literal : int_literal | byte_literal | string_literal | float_literal | bool_literal

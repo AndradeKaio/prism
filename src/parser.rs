@@ -2,15 +2,6 @@
 use crate::lexer::{Lexer, Token, TokenType, Keyword, Symbol};
 use crate::ast::{AST, ASTKind};
 
-macro_rules! match_tok {
-    ($e:expr, $p:pat) => {
-        match $e {
-            $p => true,
-            _ => false
-        }
-    }
-}
-
 pub enum Error {
     error,
     EOF,
@@ -63,6 +54,12 @@ impl <'a> Parser <'a>{
         Ok(start)
     }
 
+    pub fn is_type(&mut self, token_type: TokenType) -> bool {
+        match token_type {
+            TokenType::Keyword(Keyword::Int) | TokenType::Keyword(Keyword::Float) | TokenType::Keyword(Keyword::Boolean) | TokenType::Keyword(Keyword::String) | TokenType::Keyword(Keyword::Byte) => {true},
+            _ => {false},
+        }
+    }
     pub fn factor(&mut self) -> Node<AST>{
         println!("-> factor()");
 
@@ -94,8 +91,9 @@ impl <'a> Parser <'a>{
             },
             TokenType::Symbol(Symbol::OpenParen) => {
                 self.match_tok(TokenType::Symbol(Symbol::OpenParen)); 
-                return self.expr();
-                self.match_tok(TokenType::Symbol(Symbol::CloseParen)); 
+                let exp = self.expr();
+                self.match_tok(TokenType::Symbol(Symbol::CloseParen));
+                return exp
             },
             TokenType::Symbol(Symbol::Not) => {
                 self.match_tok(TokenType::Symbol(Symbol::Not)); 
@@ -189,9 +187,17 @@ impl <'a> Parser <'a>{
 
     pub fn while_stmt(&mut self) -> Node<AST>{
         println!("-> while stmt()");
-        Ok(
-            AST{kind:ASTKind::Var("teste".to_string())}
-        )
+
+        self.match_tok(TokenType::Keyword(Keyword::While));
+        self.match_tok(TokenType::Symbol(Symbol::OpenParen));
+        let cond = self.expr();
+        self.match_tok(TokenType::Symbol(Symbol::CloseParen));
+        //body
+        self.match_tok(TokenType::Symbol(Symbol::OpenBrace));
+        let body = self.stmt();
+        self.match_tok(TokenType::Symbol(Symbol::CloseBrace));
+
+        Ok(AST{kind:ASTKind::While(Box::new(cond?), Box::new(body?))})
     }
 
     pub fn func_def(&mut self) -> Node<AST> {
@@ -234,15 +240,88 @@ impl <'a> Parser <'a>{
 
         }
     }
+
+    pub fn var_decl(&mut self) -> Node<AST>{
+        let cur_type = self.cur_type();
+        self.match_tok(cur_type);
+
+        let cur_token = self.cur_tok().unwrap();
+        self.match_tok(TokenType::Identifier(self.get_lexem(cur_token)));
+
+        if self.cur_type() == TokenType::Symbol(Symbol::Assign) {
+            self.match_tok(TokenType::Symbol(Symbol::Assign));
+            if self.cur_type() == TokenType::Symbol(Symbol::Minus){
+                self.match_tok(TokenType::Symbol(Symbol::Minus));
+            }
+
+            match self.cur_type() {
+                TokenType::LitInt(ref i ) => {
+                    self.match_tok(TokenType::LitInt(i.clone()));
+                }
+                TokenType::LitFloat(ref i ) => {
+                    self.match_tok(TokenType::LitFloat(i.clone()));
+                }
+                TokenType::LitString(ref i ) => {
+                    self.match_tok(TokenType::LitString(i.clone()));
+                }
+                TokenType::LitByte(ref i ) => {
+                    self.match_tok(TokenType::LitByte(i.clone()));
+                }
+                TokenType::LitBool(ref i ) => {
+                    self.match_tok(TokenType::LitBool(i.clone()));
+                }
+                _ => {return Err(Error::error)}
+            }
+        }
+
+        //list of definitions
+        while self.cur_type() == TokenType::Symbol(Symbol::Comma) {
+            self.match_tok(TokenType::Symbol(Symbol::Comma));
+            let cur_token = self.cur_tok().unwrap();
+            self.match_tok(TokenType::Identifier(self.get_lexem(cur_token)));
+            if self.cur_type() == TokenType::Symbol(Symbol::Assign) {
+                self.match_tok(TokenType::Symbol(Symbol::Assign));
+                if self.cur_type() == TokenType::Symbol(Symbol::Minus){
+                    self.match_tok(TokenType::Symbol(Symbol::Minus));
+                }
+
+                match self.cur_type() {
+                    TokenType::LitInt(ref i ) => {
+                        self.match_tok(TokenType::LitInt(i.clone()));
+                    }
+                    TokenType::LitFloat(ref i ) => {
+                        self.match_tok(TokenType::LitFloat(i.clone()));
+                    }
+                    TokenType::LitString(ref i ) => {
+                        self.match_tok(TokenType::LitString(i.clone()));
+                    }
+                    TokenType::LitByte(ref i ) => {
+                        self.match_tok(TokenType::LitByte(i.clone()));
+                    }
+                    TokenType::LitBool(ref i ) => {
+                        self.match_tok(TokenType::LitBool(i.clone()));
+                    }
+                    _ => {return Err(Error::error)}
+                }
+            }
+        }
+
+        self.match_tok(TokenType::Symbol(Symbol::Semicolon));
+        return self.stmt();
+    }
+
     pub fn simple_stmt(&mut self) -> Node<AST>{
-        println!("-> simple_stmt()");
+        if self.is_type(self.cur_tok().unwrap().token_type){
+            return self.var_decl();
+        }
         Ok(AST{kind:ASTKind::Var("teste".to_string())})
     }
 
     pub fn stmt(&mut self) -> Node<AST>{
         println!("-> stmt()");
         match self.cur_type() {
-            TokenType::Keyword(_) => self.compound_stmt(),
+            TokenType::Keyword(Keyword::If) | TokenType::Keyword(Keyword::While) | TokenType::Keyword(Keyword::Fn) => self.compound_stmt(),
+
             _ =>  self.simple_stmt(),
             
         }
