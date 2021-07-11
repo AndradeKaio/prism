@@ -4,8 +4,9 @@ use crate::ast::{AST, ASTKind};
 
 #[derive(Debug)]
 pub enum Error {
-    error,
-    EOF,
+    Eof,
+    UnexpectedToken,
+    MismatchType,
 }
 
 pub type Node<T> = Result<T, Error>;
@@ -105,7 +106,7 @@ impl <'a> Parser <'a>{
                 self.match_tok(TokenType::Symbol(Symbol::Not)); 
                 return self.factor();
             },
-            _ => Err(Error::error),
+            _ => Err(Error::UnexpectedToken),
         }
     }
 
@@ -244,7 +245,7 @@ impl <'a> Parser <'a>{
             TokenType::Keyword(Keyword::If) => self.if_stmt(),
             TokenType::Keyword(Keyword::While) => self.while_stmt(),
             TokenType::Keyword(Keyword::Fn) => self.func_def(),
-            _ => Err(Error::error),
+            _ => Err(Error::UnexpectedToken),
 
         }
     }
