@@ -2,7 +2,6 @@ use std::ops::Range;
 use std::fmt;
 
 
-// this is
 pub struct Lexer<'a> {
     pub content: &'a str,
     pub pos: usize,
@@ -83,6 +82,8 @@ impl<'a> Lexer<'a> {
             "float" => TokenType::Keyword(Keyword::Float),
             "int" => TokenType::Keyword(Keyword::Int),
             "boolean" => TokenType::Keyword(Keyword::Boolean),
+            "true" => TokenType::LitBool(true),
+            "false" => TokenType::LitBool(false),
             _ => TokenType::Identifier(lexem.to_string()),
         };
 
@@ -150,6 +151,7 @@ impl<'a> Lexer<'a> {
                 while self.current_char()? != '\'' {
                     self.advance();
                 }
+                self.advance();
                 let lexem = self.get_lexem(start.. self.pos - 1);
                 TokenType::LitString(lexem.to_string())
             }
@@ -166,7 +168,7 @@ impl<'a> Iterator for Lexer<'a> {
     fn next(&mut self) -> Option<Token> {
     
         let mut c = self.get_char().unwrap();
-        
+
         if c.is_whitespace() {
             c = self.get_char()?;
 
@@ -243,17 +245,20 @@ pub enum TokenType {
 
     Eof,
 }
+
 #[derive(Debug, Clone, Copy)]
 pub struct Lexem {
     pub start: usize,
     pub end: usize,
 }
+
 #[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexem: Lexem,
     pub line: u32,
 }
+
 impl Lexem {
 
     pub fn new(start: usize, end: usize) -> Lexem {

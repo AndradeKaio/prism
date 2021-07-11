@@ -49,6 +49,7 @@ pub enum ASTKind {
     If(Box<AST>, Box<AST>),
     IfElse(Box<AST>, Box<AST>, Box<AST>),
     FuncDef(Box<AST>, String, Box<AST>),
+    VarDecl(String, Option<Box<AST>>),
 
 }
 

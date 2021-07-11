@@ -1,7 +1,9 @@
-int a = 10, b, c = 10;
+string a = 'aaaa';
+int a = 10;
 int a;
 while(true){
-
+int a;
+int b;
 }
 
 if (1 > 2){

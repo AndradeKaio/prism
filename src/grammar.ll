@@ -4,14 +4,22 @@ simple_stmt: var_decl
 
 compound_stmt: "if" "(" expr ")" "{" stmt "}" ["else" "if"  "("expr")" "{" stmt "}"] ["else" "{" stmt "}"] |
                 "while" "(" expr ")" "{" stmt "}" |
-                "fn" id "(" func_param_list ")" "{" "}"
+                func_def
 
+expr: exprs [('<' | '>'| '<=' | '>=' | '!=' | '==') exprs]
 
-func_def : "fn" id [: return_type] "(" func_param_list ")" "{" ["ret" (id | literal]  "}"
+exprs: [ '+'| '-'] term { ('+' | '-' | 'or') term}
+
+term: factor {('*'| '/' | 'and') factor)}
+
+factor: "(" expr ")" | id | literal | 'not' factor
+
+func_def : "fn" id "(" func_param_list ")" [: return_type] "{" ["ret" (id | literal]  "}"
 
 func_param_list : type id {',' type id }
 
-var_decl : type id ['=' ['-'] literal] {',' id ['=' ['-'] literal]} ';'
+#var_decl : type id ['=' expr ] {',' id ['=' expr ]} ';'
+var_decl : type id ['=' expr ] ';'
 
 type := "int" | "byte" | "string" | "float" | "bool"
 
